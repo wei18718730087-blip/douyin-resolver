@@ -30,7 +30,9 @@ async def resolve_short_link(
     """Follow redirects on a Douyin short link and return the final URL."""
 
     async def _resolve_with_client(c: httpx.AsyncClient) -> str:
-        resp = await c.get(url)
+        # Always use follow_redirects=False to manually track redirects
+        # This overrides the client's default setting
+        resp = await c.get(url, follow_redirects=False)
 
         max_redirects = 10
         current_url = url
@@ -43,7 +45,7 @@ async def resolve_short_link(
                     from urllib.parse import urljoin
                     location = urljoin(current_url, location)
                 current_url = location
-                resp = await c.get(current_url)
+                resp = await c.get(current_url, follow_redirects=False)
             else:
                 break
 
