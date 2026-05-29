@@ -21,7 +21,6 @@ class Comment(BaseModel):
     like_count: int = Field(default=0, description="Number of likes")
     reply_count: Optional[int] = Field(default=None, description="Number of replies")
     create_time: Optional[str] = Field(default=None, description="Comment creation time")
-    user: CommentUser
 
 
 class Author(BaseModel):

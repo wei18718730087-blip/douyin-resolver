@@ -59,7 +59,7 @@ async def resolve_douyin_link(request: ResolveRequest, req: Request):
 
     - **url**: 抖音分享链接或包含链接的文本
     - **include_comments**: 是否包含评论（默认 true）
-    - **comment_limit**: 评论数量上限（默认 20，最大 100）
+    - **comment_limit**: 评论数量上限（默认 50，最大 100）
     - **download**: 是否请求下载信息（暂不支持）
     """
     try:

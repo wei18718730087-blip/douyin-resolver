@@ -236,7 +236,8 @@ def _print_human(result: ResolveResult) -> None:
     if result.comments:
         typer.echo(f"  评论: {len(result.comments)} 条")
         for i, c in enumerate(result.comments, 1):
-            typer.echo(f"    {i}. [{c.like_count}赞] {c.text[:50]}")
+            like_str = f"{c.like_count}赞" if c.like_count > 0 else ""
+            typer.echo(f"    {i}. {like_str} {c.text[:50]}")
 
     if result.warnings:
         for w in result.warnings:

@@ -10,7 +10,7 @@ from typing import List, Optional
 import httpx
 
 from packages.core.errors import ErrorCode, ResolverError
-from packages.core.schemas import Comment, CommentUser
+from packages.core.schemas import Comment
 
 BROWSER_HEADERS = {
     "User-Agent": (
@@ -27,13 +27,6 @@ COMMENT_API_URL = "https://www.iesdouyin.com/web/api/v2/comment/list/"
 
 # Number of API requests to accumulate unique comments
 FETCH_ROUNDS = 5
-
-
-def _mask_nickname(name: str) -> str:
-    """Mask nickname for privacy: keep first and last char, mask middle."""
-    if len(name) <= 2:
-        return name[0] + "*" if len(name) == 2 else name
-    return name[0] + "*" * (len(name) - 2) + name[-1]
 
 
 def _parse_timestamp(ts: Optional[int]) -> Optional[str]:
@@ -53,9 +46,6 @@ def _parse_comment(raw: dict) -> Optional[Comment]:
     if not cid or not text:
         return None
 
-    user_data = raw.get("user", {})
-    nickname = user_data.get("nickname", "匿名用户")
-
     # API uses "createTime" (camelCase), try both
     create_time = raw.get("createTime") or raw.get("create_time")
 
@@ -65,7 +55,6 @@ def _parse_comment(raw: dict) -> Optional[Comment]:
         like_count=raw.get("digg_count", 0),
         reply_count=raw.get("reply_comment_total", None),
         create_time=_parse_timestamp(create_time),
-        user=CommentUser(nickname=_mask_nickname(nickname)),
     )
 
 

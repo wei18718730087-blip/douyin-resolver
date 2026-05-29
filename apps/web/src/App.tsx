@@ -19,7 +19,6 @@ interface Comment {
   like_count: number
   reply_count: number | null
   create_time: string | null
-  user: { nickname: string }
 }
 
 interface ErrorInfo {
@@ -337,7 +336,6 @@ function App() {
                             </span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-medium text-gray-900">{c.user.nickname}</span>
                                 <span className="text-xs text-indigo-500 font-medium">
                                   {c.like_count > 0 && `${c.like_count > 10000 ? `${(c.like_count / 10000).toFixed(1)}w` : c.like_count} 赞`}
                                 </span>
