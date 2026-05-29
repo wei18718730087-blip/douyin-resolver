@@ -6,8 +6,10 @@ import asyncio
 import json
 import sys
 from importlib.metadata import version as get_version
+from pathlib import Path
 from typing import Optional
 
+import httpx
 import typer
 
 from packages.core.errors import EXIT_INPUT_ERROR, EXIT_PLATFORM_ERROR, EXIT_RATE_LIMITED, EXIT_SUCCESS, EXIT_UPSTREAM_ERROR, ErrorCode, ResolverError
@@ -47,14 +49,21 @@ def _exit_code_for_error(code: ErrorCode) -> int:
 def main(
     url: str = typer.Argument(help="抖音分享链接或包含链接的文本"),
     comments: int = typer.Option(0, "--comments", "-c", help="获取评论数量，0 表示不获取"),
-    download: bool = typer.Option(False, "--download", "-d", help="请求下载信息"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="下载目录（暂不支持）"),
+    download: bool = typer.Option(False, "--download", "-d", help="下载视频到指定目录"),
+    output: Optional[str] = typer.Option(None, "--output", "-o", help="下载目录（默认当前目录）"),
     human: bool = typer.Option(False, "--human", help="人类可读输出模式"),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="安静模式，仅输出 JSON（适合 Agent 调用）"),
     version: Optional[bool] = typer.Option(None, "--version", "-v", callback=version_callback, is_eager=True, help="显示版本号"),
 ) -> None:
     """解析抖音分享链接，输出 JSON 结果。"""
     result = asyncio.run(_resolve(url, comments, download))
+
+    # Download video if requested
+    if download and result.ok and result.media and result.media.downloadable:
+        download_dir = Path(output) if output else Path.cwd()
+        downloaded_path = asyncio.run(_download_video(result.media.url, result.aweme_id, download_dir, quiet))
+        if downloaded_path:
+            result.warnings.append(f"已下载到: {downloaded_path}")
 
     if quiet:
         # Agent 模式：仅输出 JSON 到 stdout
@@ -68,13 +77,79 @@ def main(
         sys.exit(_exit_code_for_error(ErrorCode(result.error.code)))
 
 
+async def _download_video(
+    video_url: str,
+    aweme_id: str,
+    output_dir: Path,
+    quiet: bool = False,
+) -> Optional[Path]:
+    """Download video to specified directory.
+
+    Args:
+        video_url: Video download URL.
+        aweme_id: Douyin work ID (used as filename).
+        output_dir: Target directory.
+        quiet: If True, suppress progress output.
+
+    Returns:
+        Path to downloaded file, or None if download failed.
+    """
+    try:
+        # Validate output directory
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Safe filename: use aweme_id only
+        filename = f"{aweme_id}.mp4"
+        filepath = output_dir / filename
+
+        # Check for path traversal
+        if not filepath.resolve().is_relative_to(output_dir.resolve()):
+            if not quiet:
+                typer.secho("错误: 无效的输出路径", fg=typer.colors.RED, err=True)
+            return None
+
+        if not quiet:
+            typer.echo(f"正在下载: {filename}", err=True)
+
+        # Download with streaming
+        async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+            async with client.stream("GET", video_url) as resp:
+                resp.raise_for_status()
+                total = int(resp.headers.get("content-length", 0))
+
+                with open(filepath, "wb") as f:
+                    downloaded = 0
+                    async for chunk in resp.aiter_bytes(chunk_size=8192):
+                        f.write(chunk)
+                        downloaded += len(chunk)
+
+                        if not quiet and total > 0:
+                            progress = downloaded / total * 100
+                            typer.echo(f"\r下载进度: {progress:.1f}%", err=True, nl=False)
+
+                if not quiet:
+                    typer.echo("", err=True)  # New line after progress
+
+        if not quiet:
+            typer.secho(f"下载完成: {filepath}", fg=typer.colors.GREEN, err=True)
+
+        return filepath
+
+    except httpx.HTTPStatusError as e:
+        if not quiet:
+            typer.secho(f"下载失败: HTTP {e.response.status_code}", fg=typer.colors.RED, err=True)
+        return None
+    except Exception as e:
+        if not quiet:
+            typer.secho(f"下载失败: {e}", fg=typer.colors.RED, err=True)
+        return None
+
+
 async def _resolve(
     url_text: str,
     comment_limit: int,
     download: bool,
 ) -> ResolveResult:
-    import httpx
-
     from packages.core.input_parser import parse_input
     from packages.core.url_resolver import resolve_url
     from packages.core.douyin_provider import BROWSER_HEADERS as DOUYIN_HEADERS, fetch_work_info
@@ -142,12 +217,12 @@ async def _resolve(
 
 def _print_human(result: ResolveResult) -> None:
     if not result.ok:
-        typer.secho(f"错误: {result.error.message if result.error else '未知错误'}", fg=typer.colors.RED)
+        typer.secho(f"错误: {result.error.message if result.error else '未知错误'}", fg=typer.colors.RED, err=True)
         if result.error and result.error.detail:
-            typer.echo(f"  详情: {result.error.detail}")
+            typer.echo(f"  详情: {result.error.detail}", err=True)
         return
 
-    typer.secho("解析成功", fg=typer.colors.GREEN)
+    typer.secho("解析成功", fg=typer.colors.GREEN, err=True)
     typer.echo(f"  标题: {result.title}")
     typer.echo(f"  作者: {result.author.nickname if result.author else '未知'}")
     typer.echo(f"  作品ID: {result.aweme_id}")
@@ -165,7 +240,7 @@ def _print_human(result: ResolveResult) -> None:
 
     if result.warnings:
         for w in result.warnings:
-            typer.secho(f"  警告: {w}", fg=typer.colors.YELLOW)
+            typer.secho(f"  警告: {w}", fg=typer.colors.YELLOW, err=True)
 
 
 if __name__ == "__main__":
