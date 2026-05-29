@@ -1,0 +1,36 @@
+{
+  "input_url": "https://v.douyin.com/bk9fkF-STVc/",
+  "steps": {
+    "parse_input": {
+      "ok": true,
+      "clean_url": "https://v.douyin.com/bk9fkF-STVc/"
+    },
+    "is_douyin": {
+      "ok": true
+    },
+    "direct_extract": {
+      "aweme_id": null
+    },
+    "resolve_url": {
+      "ok": true,
+      "final_url": "https://www.iesdouyin.com/share/video/7637819731894649507/?from_ssr=1&video_share_track_ver=&did=MS4wLjABAAAAm_Rqxn9wig5rqWOuREkUM0KtNbQkepauZiuYEoY9IgtegpfyPQcLbd8e5f58uRrq&mid=7637819675905837830&ts=1779981891&share_track_info=%7B%22link_description_type%22:%22%22%7D&region=CN&share_sign=Fou1QEs5Mae8NtVGDQmNTL7KnRffl0i1STrnXwyJmBQ-&tt_from=share_to&with_sec_did=1&from_aid=1128&titleType=title&utm_source=share_to&utm_medium=ios&activity_info=%7B%22social_share_time%22:%221779984617%22,%22social_author_id%22:%227623823771686667301%22,%22social_share_id%22:%222447957146490671_1779984617%22,%22social_share_user_id%22:%222447957146490671%22%7D&timestamp=1779984617&share_version=370800&ug_share_id=92c647e2c3c8d_1779984618994&u_code=2d22a01a8a1k&iid=MS4wLjABAAAAuOPM_Cd1IfyGjEE4EAFKryqzvYW5zJmWl-i0jCLsPnbvVpmn9vyvYOK0Je4qKx3r&utm_campaign=client_share&app=aweme",
+      "aweme_id": "7637819731894649507",
+      "elapsed_s": 0.87
+    },
+    "fetch_work": {
+      "ok": true,
+      "title": "自由和理想快老实了 #毕业  #大学生 #租房 #找工作 #老实",
+      "author": "历史上最坚强的小树",
+      "cover_url": "https://p3-sign.douyinpic.com/tos-cn-i-0813c001/o8eA0QIfSeGAtUAXkxAvLU7EevYAPPgHeLQlO2~tplv-dy-resize-walign-adapt-aq:540:q75.webp?lk3s=138a59ce&x-expires=1781236800&x-signature=we9XZ1nkpj4vL%2BPoSdxZN258Xys%3D&from=327834062&s=PackSourceEnum_DOUYIN_REFLOW&se=false&sc=cover&biz_tag=aweme_video&l=2026052912543706711CC44F0C29FB6FCC",
+      "video_url": "https://aweme.snssdk.com/aweme/v1/playwm/?line=0&logo_name=aweme_diversion_search&ratio=720p&video_id=v0300fg10000d7vfn37og65k6o53pcbg",
+      "downloadable": true,
+      "elapsed_s": 0.5
+    },
+    "fetch_comments": {
+      "ok": true,
+      "count": 0,
+      "top_comments": [],
+      "elapsed_s": 0.62
+    }
+  }
+}
