@@ -48,7 +48,7 @@ def _exit_code_for_error(code: ErrorCode) -> int:
 @app.command()
 def main(
     url: str = typer.Argument(help="抖音分享链接或包含链接的文本"),
-    comments: int = typer.Option(0, "--comments", "-c", help="获取评论数量，0 表示不获取"),
+    comments: int = typer.Option(50, "--comments", "-c", help="获取评论数量，0 表示不获取"),
     download: bool = typer.Option(False, "--download", "-d", help="下载视频到指定目录"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="下载目录（默认当前目录）"),
     human: bool = typer.Option(False, "--human", help="人类可读输出模式"),
